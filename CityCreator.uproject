@@ -8,6 +8,14 @@
 			"Name": "CityCreator",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "CityCreatorEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"UnrealEd"
+			]
 		}
 	],
 	"Plugins": [
