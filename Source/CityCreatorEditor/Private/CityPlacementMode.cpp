@@ -2,10 +2,21 @@
 
 #include "CityPlacementMode.h"
 
+// Core editor
 #include "Editor.h"
+#include "UnrealEd.h"
+
+// Viewport / rendering
 #include "EditorViewportClient.h"
+#include "SceneView.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
+
+// Debug
 #include "DrawDebugHelpers.h"
+
+// Math
+#include "Math/UnrealMathUtility.h"
 
 
 // Unique ID for this editor mode
@@ -16,8 +27,16 @@ TEXT("EM_CityPlacement");
 // Constructor
 FCityPlacementMode::FCityPlacementMode()
 {
-    UE_LOG(LogTemp, Warning, TEXT("CityPlacementMode Constructor"));
+    GridSize = 500.f;
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("CityPlacementMode Constructor | GridSize = %f"),
+        GridSize
+    );
 }
+
 
 // Destructor
 FCityPlacementMode::~FCityPlacementMode()
@@ -43,6 +62,17 @@ void FCityPlacementMode::Exit()
 }
 
 
+// Snap position to grid
+FVector FCityPlacementMode::SnapToGrid(const FVector& Position) const
+{
+    return FVector(
+        FMath::GridSnap(Position.X, GridSize),
+        FMath::GridSnap(Position.Y, GridSize),
+        Position.Z
+    );
+}
+
+
 // Handle mouse clicks in viewport
 bool FCityPlacementMode::HandleClick(
     FEditorViewportClient* InViewportClient,
@@ -51,11 +81,18 @@ bool FCityPlacementMode::HandleClick(
 )
 {
     if (!InViewportClient)
+    {
+        UE_LOG(LogTemp, Error, TEXT("No Viewport Client"));
         return false;
+    }
 
     UWorld* World = InViewportClient->GetWorld();
+
     if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("No World"));
         return false;
+    }
 
 
     // Build scene view
@@ -70,10 +107,13 @@ bool FCityPlacementMode::HandleClick(
     FSceneView* View = InViewportClient->CalcSceneView(&ViewFamily);
 
     if (!View)
+    {
+        UE_LOG(LogTemp, Error, TEXT("No Scene View"));
         return false;
+    }
 
 
-    // Convert screen pos to ray
+    // Convert screen pos to world ray
     FVector RayOrigin;
     FVector RayDirection;
 
@@ -97,25 +137,38 @@ bool FCityPlacementMode::HandleClick(
     );
 
 
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Trace Result: %s"),
+        bHit ? TEXT("HIT") : TEXT("MISS")
+    );
+
+
     if (bHit)
     {
-        FVector HitPoint = Hit.ImpactPoint;
+        FVector RawPoint = Hit.ImpactPoint;
+        FVector SnappedPoint = SnapToGrid(RawPoint);
+
 
         UE_LOG(
             LogTemp,
             Warning,
-            TEXT("Placement Hit: %s"),
-            *HitPoint.ToString()
+            TEXT("Raw: %s | Snapped: %s"),
+            *RawPoint.ToString(),
+            *SnappedPoint.ToString()
         );
 
+
+        // Persistent debug sphere
         DrawDebugSphere(
             World,
-            HitPoint,
-            25.f,
-            12,
-            FColor::Green,
-            false,
-            2.f
+            SnappedPoint,
+            50.f,
+            24,
+            FColor::Red,
+            true,
+            10.f
         );
     }
 

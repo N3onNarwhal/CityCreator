@@ -1,25 +1,44 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+// Editor mode base
 #include "EdMode.h"
+
+// Viewport / click types
+#include "EditorViewportClient.h"
+#include "HitProxies.h"
+#include "InputCoreTypes.h"
+
 
 class FCityPlacementMode : public FEdMode
 {
 public:
 
+    // Unique mode ID
     static const FEditorModeID EM_CityPlacement;
 
     FCityPlacementMode();
     virtual ~FCityPlacementMode();
 
-    // Called when mode is activated
+
+    // Lifecycle
     virtual void Enter() override;
     virtual void Exit() override;
 
-    // Mouse click handler
+
+    // Mouse input
     virtual bool HandleClick(
         FEditorViewportClient* InViewportClient,
         HHitProxy* HitProxy,
         const FViewportClick& Click
     ) override;
+
+
+protected:
+
+    // Grid snapping
+    float GridSize;
+
+    FVector SnapToGrid(const FVector& Position) const;
 };
