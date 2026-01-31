@@ -3,6 +3,7 @@
 #if WITH_EDITOR
 
 #include "Editor.h"
+#include "UnrealEd.h"
 #include "LevelEditorViewport.h"
 #include "EditorViewportClient.h"
 

@@ -5,7 +5,7 @@
 #include "CityEditorViewportHelper.generated.h"
 
 UCLASS()
-class CITYCREATOR_API UCityEditorViewportHelper
+class CITYCREATOREDITOR_API UCityEditorViewportHelper
     : public UBlueprintFunctionLibrary
 {
     GENERATED_BODY()

@@ -18,6 +18,9 @@
 // Math
 #include "Math/UnrealMathUtility.h"
 
+#include "CityPlacementControllerBase.h"
+#include "EngineUtils.h"
+
 
 // Unique ID for this editor mode
 const FEditorModeID FCityPlacementMode::EM_CityPlacement =
@@ -149,6 +152,15 @@ bool FCityPlacementMode::HandleClick(
     {
         FVector RawPoint = Hit.ImpactPoint;
         FVector SnappedPoint = SnapToGrid(RawPoint);
+
+        UE_LOG(LogTemp, Warning, TEXT("Searching for controller..."));
+        for (TActorIterator<ACityPlacementControllerBase> It(World); It; ++It)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Found controller, calling BP"));
+
+            It->OnEditorPlacement(SnappedPoint);
+            break;
+        }
 
 
         UE_LOG(
