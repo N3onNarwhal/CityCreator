@@ -18,4 +18,10 @@ public:
 	void OnEditorPlacement(FVector WorldPosition);
 
 	virtual void OnEditorPlacement_Implementation(FVector WorldPosition);
+
+	float GridSize = 500.f;
+
+	UFUNCTION(BlueprintCallable, Category = "CityPlacement")
+	float GetGridSize() const;
+
 };

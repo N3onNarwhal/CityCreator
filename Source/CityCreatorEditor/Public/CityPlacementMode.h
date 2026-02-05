@@ -34,11 +34,6 @@ public:
         const FViewportClick& Click
     ) override;
 
+    float GetLiveGridSize() const;
 
-protected:
-
-    // Grid snapping
-    float GridSize;
-
-    FVector SnapToGrid(const FVector& Position) const;
 };

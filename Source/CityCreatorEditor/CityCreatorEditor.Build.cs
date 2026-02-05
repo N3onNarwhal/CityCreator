@@ -12,6 +12,7 @@ public class CityCreatorEditor : ModuleRules
                 "Core",
                 "CoreUObject",
                 "Engine",
+                "EditorSubsystem",
                 "CityCreator"
             }
         );
@@ -27,7 +28,8 @@ public class CityCreatorEditor : ModuleRules
                 "InputCore",
                 "RenderCore",
                 "RHI",
-                "Renderer"
+                "Renderer",
+                "EditorSubsystem"
             }
         );
     }

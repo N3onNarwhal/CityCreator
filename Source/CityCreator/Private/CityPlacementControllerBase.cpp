@@ -9,3 +9,9 @@ void ACityPlacementControllerBase::OnEditorPlacement_Implementation(FVector Worl
 {
 	UE_LOG(LogTemp, Warning, TEXT("C++ OnEditorPlacement_Implementation: %s"), *WorldPosition.ToString());
 }
+
+float ACityPlacementControllerBase::GetGridSize() const
+{
+	return GridSize;
+}
+

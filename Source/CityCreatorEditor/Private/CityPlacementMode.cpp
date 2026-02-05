@@ -20,6 +20,7 @@
 
 #include "CityPlacementControllerBase.h"
 #include "EngineUtils.h"
+#include "CityPlacementSettingsSubsystem.h"
 
 
 // Unique ID for this editor mode
@@ -30,14 +31,6 @@ TEXT("EM_CityPlacement");
 // Constructor
 FCityPlacementMode::FCityPlacementMode()
 {
-    GridSize = 500.f;
-
-    UE_LOG(
-        LogTemp,
-        Warning,
-        TEXT("CityPlacementMode Constructor | GridSize = %f"),
-        GridSize
-    );
 }
 
 
@@ -64,15 +57,20 @@ void FCityPlacementMode::Exit()
     FEdMode::Exit();
 }
 
-
-// Snap position to grid
-FVector FCityPlacementMode::SnapToGrid(const FVector& Position) const
+float FCityPlacementMode::GetLiveGridSize() const
 {
-    return FVector(
-        FMath::GridSnap(Position.X, GridSize),
-        FMath::GridSnap(Position.Y, GridSize),
-        Position.Z
-    );
+#if WITH_EDITOR
+    if (GEditor)
+    {
+        if (UCityPlacementSettingsSubsystem* Subsys =
+            GEditor->GetEditorSubsystem<UCityPlacementSettingsSubsystem>())
+        {
+            return Subsys->GetGridSize();
+        }
+    }
+#endif
+
+    return 500.f; // fallback
 }
 
 
@@ -89,7 +87,14 @@ bool FCityPlacementMode::HandleClick(
         return false;
     }
 
-    UWorld* World = InViewportClient->GetWorld();
+    UWorld* World = nullptr;
+
+#if WITH_EDITOR
+    if (GEditor)
+    {
+        World = GEditor->GetEditorWorldContext().World();
+    }
+#endif
 
     if (!World)
     {
@@ -151,38 +156,44 @@ bool FCityPlacementMode::HandleClick(
     if (bHit)
     {
         FVector RawPoint = Hit.ImpactPoint;
-        FVector SnappedPoint = SnapToGrid(RawPoint);
 
         UE_LOG(LogTemp, Warning, TEXT("Searching for controller..."));
+
         for (TActorIterator<ACityPlacementControllerBase> It(World); It; ++It)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Found controller, calling BP"));
+            ACityPlacementControllerBase* Controller = *It;
 
-            It->OnEditorPlacement(SnappedPoint);
+            if (!IsValid(Controller))
+                continue;
+
+            UE_LOG(LogTemp, Warning, TEXT("Found controller"));
+
+            // Get grid size from subsystem
+            float GridSize = GetLiveGridSize();
+
+            // Snap
+            FVector SnappedPoint(
+                FMath::GridSnap(RawPoint.X, GridSize),
+                FMath::GridSnap(RawPoint.Y, GridSize),
+                RawPoint.Z
+            );
+
+            UE_LOG(
+                LogTemp,
+                Warning,
+                TEXT("Raw: %s | Snapped: %s | Grid: %f"),
+                *RawPoint.ToString(),
+                *SnappedPoint.ToString(),
+                GridSize
+            );
+
+            // Send to controller (it handles rotation + spawning)
+            Controller->OnEditorPlacement(SnappedPoint);
+
             break;
         }
-
-
-        UE_LOG(
-            LogTemp,
-            Warning,
-            TEXT("Raw: %s | Snapped: %s"),
-            *RawPoint.ToString(),
-            *SnappedPoint.ToString()
-        );
-
-
-        // Persistent debug sphere
-        DrawDebugSphere(
-            World,
-            SnappedPoint,
-            50.f,
-            24,
-            FColor::Red,
-            true,
-            10.f
-        );
     }
+
 
     return true;
 }
